@@ -16,7 +16,8 @@ JOB_SUITABILITY_SCORE = 7
 JOB_MAX_APPLICATIONS = 5
 JOB_MIN_APPLICATIONS = 1
 
-LLM_MODEL_TYPE = 'openai'
-LLM_MODEL = 'gpt-4o-mini'
+LLM_MODEL_TYPE = 'you'
+# For You.com: Use 'express' for fast responses or 'advanced' for deep research
+LLM_MODEL = 'express'
 # Only required for OLLAMA models
 LLM_API_URL = ''

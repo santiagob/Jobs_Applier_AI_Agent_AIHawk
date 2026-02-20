@@ -69,6 +69,7 @@ from src.utils.constants import (
     TOTAL_TOKENS,
     USAGE_METADATA,
     WORK_PREFERENCES,
+    YOU,
 )
 from src.job import Job
 from src.logging import logger
@@ -131,6 +132,54 @@ class PerplexityModel(AIModel):
     def invoke(self, prompt: str) -> BaseMessage:
         response = self.model.invoke(prompt)
         return response
+
+
+class YouModel(AIModel):
+    def __init__(self, api_key: str, llm_model: str):
+        self.api_key = api_key
+        # llm_model is used to determine agent type: 'express', 'advanced', or custom agent ID
+        self.agent_type = llm_model if llm_model in ['express', 'advanced'] else 'express'
+        self.api_url = "https://api.you.com/v1/agents/runs"
+
+    def invoke(self, prompt: str) -> BaseMessage:
+        logger.debug(f"Invoking You.com API with {self.agent_type} agent")
+        
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        data = {
+            "agent": self.agent_type,
+            "input": prompt if isinstance(prompt, str) else str(prompt),
+            "stream": False
+        }
+        
+        try:
+            response = httpx.post(self.api_url, headers=headers, json=data, timeout=60)
+            response.raise_for_status()
+            result = response.json()
+            
+            # Extract the answer from You.com's response structure
+            output = result.get('output', [])
+            answer_text = ""
+            
+            for item in output:
+                if item.get('type') == 'message.answer':
+                    answer_text = item.get('text', '')
+                    break
+            
+            if not answer_text and output:
+                # Fallback: concatenate all text content
+                answer_text = ' '.join([item.get('text', '') for item in output if 'text' in item])
+            
+            # Return as AIMessage to be compatible with LangChain
+            return AIMessage(content=answer_text)
+            
+        except httpx.HTTPError as e:
+            logger.error(f"You.com API request failed: {str(e)}")
+            raise
+
 
 # gemini doesn't seem to work because API doesn't rstitute answers for questions that involve answers that are too short
 class GeminiModel(AIModel):
@@ -205,6 +254,8 @@ class AIAdapter:
             return HuggingFaceModel(api_key, llm_model)
         elif llm_model_type == PERPLEXITY:
             return PerplexityModel(api_key, llm_model)
+        elif llm_model_type == YOU:
+            return YouModel(api_key, llm_model)
         else:
             raise ValueError(f"Unsupported model type: {llm_model_type}")
 
@@ -213,7 +264,7 @@ class AIAdapter:
 
 
 class LLMLogger:
-    def __init__(self, llm: Union[OpenAIModel, OllamaModel, ClaudeModel, GeminiModel]):
+    def __init__(self, llm: Union[OpenAIModel, OllamaModel, ClaudeModel, GeminiModel, YouModel]):
         self.llm = llm
         logger.debug(f"LLMLogger successfully initialized with LLM: {llm}")
 
