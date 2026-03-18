@@ -1,4 +1,4 @@
-remote: true
+remote: false
 hybrid: true
 onsite: true
 
@@ -16,20 +16,42 @@ job_types:
   part_time: false
   temporary: true
   internship: false
-  other: false
-  volunteer: true
+  other: true
+  volunteer: false
 
 date:
-  all_time: false
-  month: false
-  week: false
+  all_time: true
+  month: true
+  week: true
   24_hours: true
 
 positions:
   - Software engineer
+  - Data scientist
+  - Product manager
+  - Data analyst
+  - Machine learning engineer
+  - Project manager
+  - Full stack developer
+  - Mobile developer  
+  - Embedded systems engineer
+  - Robotics engineer
+  - Firmware engineer
+  - Research scientist
+  - AI researcher
+  - Robotics researcher
+  - Data engineer
+  - Electronics engineer
+  - Systems engineer
 
 locations:
+  - United States
+  - London
   - Germany
+  - New York
+  - San Francisco
+  - Seattle
+  - Remote
 
 apply_once_at_company: true
 
